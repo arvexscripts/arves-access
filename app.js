@@ -1,189 +1,119 @@
-const ArvesAccess = (() => {
-    
-    const i18n = {
-        en: {
-            title: "Arves Access",
-            subtitle: "Complete the checks to proceed",
-            step: "Step",
-            completed: "COMPLETED",
-            verifying: "VERIFYING...",
-            access: "ACCESS CONTENT",
-            visiting: "Visit sponsor",
-            waiting: "Waiting for security check",
-            success: "Access granted. Redirecting..."
-        },
-        es: {
-            title: "Arves Access",
-            subtitle: "Completa las verificaciones para continuar",
-            step: "Paso",
-            completed: "COMPLETADO",
-            verifying: "VERIFICANDO...",
-            access: "ACCEDER CONTENIDO",
-            visiting: "Visitar patrocinador",
-            waiting: "Esperando verificación de seguridad",
-            success: "Acceso concedido. Redirigiendo..."
-        },
-        pt: {
-            title: "Arves Access",
-            subtitle: "Conclua as verificações para prosseguir",
-            step: "Passo",
-            completed: "CONCLUÍDO",
-            verifying: "VERIFICANDO...",
-            access: "ACESSAR CONTEÚDO",
-            visiting: "Visitar patrocinador",
-            waiting: "Aguardando verificação de segurança",
-            success: "Acesso autorizado. Redirecionando..."
-        }
-    };
+const i18n = {
+    pt: {
+        title: "Complete as etapas",
+        step1: "Inscreva-se no canal",
+        step2: "Dê like no vídeo",
+        step3: "Entre no Discord",
+        start: "Iniciar",
+        done: "Concluído",
+        wait: "Aguarde",
+        access: "Acessar conteúdo",
+        status: "Etapa {x} de 3"
+    },
+    en: {
+        title: "Complete the steps",
+        step1: "Subscribe to channel",
+        step2: "Like the video",
+        step3: "Join Discord",
+        start: "Start",
+        done: "Completed",
+        wait: "Wait",
+        access: "Access content",
+        status: "Step {x} of 3"
+    },
+    es: {
+        title: "Completa los pasos",
+        step1: "Suscríbete al canal",
+        step2: "Dale like al video",
+        step3: "Únete al Discord",
+        start: "Iniciar",
+        done: "Completado",
+        wait: "Espera",
+        access: "Acceder contenido",
+        status: "Paso {x} de 3"
+    }
+};
 
-    const CONFIG = [
-        { id: 1, labelKey: "visiting", type: "link", url: "https://google.com", minTime: 6000 },
-        { id: 2, labelKey: "waiting", type: "timer", minTime: 10000 }
-    ];
+let current = 0;
+let lang = localStorage.getItem("lang") || "pt";
 
-    let currentLang = localStorage.getItem("lang") || "en";
+function setLang(l) {
+    lang = l;
+    localStorage.setItem("lang", l);
+    render();
+}
 
-    let state = {
-        step: 0,
-        completed: [],
-        fingerprint: null,
-        token: null,
-        challenge: null
-    };
+function render() {
+    const t = i18n[lang];
 
-    const getFingerprint = () => btoa(navigator.userAgent.length + screen.width.toString());
+    document.getElementById("title").innerText = t.title;
+    document.getElementById("step1").innerText = t.step1;
+    document.getElementById("step2").innerText = t.step2;
+    document.getElementById("step3").innerText = t.step3;
 
-    const generateToken = (data) => {
-        const str = JSON.stringify(data) + state.fingerprint;
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = (hash << 5) - hash + str.charCodeAt(i);
-            hash |= 0;
-        }
-        return btoa(hash.toString());
-    };
+    document.getElementById("btn0").innerText = t.start;
+    document.getElementById("btn1").innerText = t.start;
+    document.getElementById("btn2").innerText = t.start;
 
-    const save = () => {
-        const clone = { ...state };
-        delete clone.token;
-        state.token = generateToken(clone);
-        localStorage.setItem("_arves_data", JSON.stringify(state));
-    };
+    document.getElementById("unlock").innerText = t.access;
 
-    const validate = () => {
-        const stored = localStorage.getItem("_arves_data");
-        if (!stored) return;
-        try {
-            const tempState = JSON.parse(stored);
-            const check = { ...tempState };
-            delete check.token;
-            if (generateToken(check) !== tempState.token) throw "Integrity error";
-            state = tempState;
-        } catch (e) {
-            localStorage.clear();
-            location.reload();
-        }
-    };
+    updateStatus();
 
-    const runStep = (step) => {
-        const currentSecret = state.challenge;
-        const start = performance.now();
-        if (step.type === "link") window.open(step.url, "_blank");
+    document.querySelectorAll(".btn").forEach(btn => {
+        btn.classList.remove("done");
+        btn.classList.add("blocked");
+    });
 
-        setTimeout(() => {
-            const elapsed = performance.now() - start;
-            if (elapsed >= step.minTime && currentSecret === state.challenge) {
-                finalizeStep(step.id);
-            }
-        }, step.minTime);
-    };
+    document.getElementById("btn0").classList.remove("blocked");
+    document.getElementById("unlock").style.display = "none";
 
-    const finalizeStep = (id) => {
-        if (id !== state.step + 1) return;
-        state.completed.push(id);
-        state.step = id;
-        state.challenge = Math.random().toString(36).substring(7);
-        save();
-        render();
-    };
+    document.querySelectorAll("#lang-selector button").forEach(b => {
+        b.classList.remove("active");
+    });
+    document.getElementById("btn-" + lang).classList.add("active");
+}
 
-    const render = () => {
-        const t = i18n[currentLang];
-        const appContainer = document.getElementById("app");
-        
-        // Atualiza textos estáticos
-        document.getElementById("txt-title").innerText = t.title;
-        document.getElementById("txt-subtitle").innerText = t.subtitle;
-        
-        // Atualiza seletor visual
-        document.querySelectorAll("#lang-selector button").forEach(btn => {
-            btn.className = btn.getAttribute("data-lang") === currentLang ? "active" : "";
-        });
+function updateStatus() {
+    const t = i18n[lang];
+    let step = current >= 3 ? 3 : current + 1;
+    document.getElementById("status").innerText =
+        t.status.replace("{x}", step);
+}
 
-        // Renderiza Steps
-        const container = document.getElementById("steps-container");
-        container.innerHTML = "";
+function start(i, url) {
+    if (i !== current) return;
 
-        CONFIG.forEach((step, index) => {
-            const isLocked = index > state.step;
-            const isDone = state.completed.includes(step.id);
-            const card = document.createElement("div");
-            card.className = `step-card ${isLocked ? 'locked' : ''}`;
-            
-            const btn = document.createElement("button");
-            btn.className = `step-btn ${isDone ? 'completed' : ''}`;
-            btn.innerText = isDone ? t.completed : t[step.labelKey];
-            btn.disabled = isLocked || isDone;
+    window.open(url, "_blank");
 
-            if (!isLocked && !isDone) {
-                btn.onclick = () => {
-                    btn.innerText = t.verifying;
-                    runStep(step);
-                };
+    let time = 5;
+    const btn = document.getElementById("btn" + i);
+    const t = i18n[lang];
+
+    btn.innerText = t.wait + " " + time;
+
+    const interval = setInterval(() => {
+        time--;
+        btn.innerText = t.wait + " " + time;
+
+        if (time <= 0) {
+            clearInterval(interval);
+
+            btn.innerText = t.done;
+            btn.classList.add("done");
+
+            current++;
+
+            if (document.getElementById("btn" + current)) {
+                document.getElementById("btn" + current).classList.remove("blocked");
             }
 
-            card.innerHTML = `<h3>${t.step} ${step.id}</h3>`;
-            card.appendChild(btn);
-            container.appendChild(card);
-        });
+            updateStatus();
 
-        // Botão Final
-        const finalBtn = document.getElementById("finalBtn");
-        finalBtn.innerText = t.access;
-        finalBtn.disabled = state.step < CONFIG.length;
-        finalBtn.onclick = () => {
-            if (!finalBtn.disabled) alert(t.success);
-        };
-    };
-
-    return {
-        init: () => {
-            state.fingerprint = getFingerprint();
-            state.challenge = Math.random().toString(36).substring(7);
-            validate();
-            render();
-            
-            setInterval(() => {
-                const t = performance.now();
-                debugger;
-                if (performance.now() - t > 100) location.reload();
-            }, 4000);
-        },
-        setLang: (lang) => {
-            if (!i18n[lang]) return;
-            currentLang = lang;
-            localStorage.setItem("lang", lang);
-            
-            // Animação simples de transição
-            const app = document.getElementById("app");
-            app.style.opacity = "0.5";
-            setTimeout(() => {
-                render();
-                app.style.opacity = "1";
-            }, 150);
+            if (current === 3) {
+                document.getElementById("unlock").style.display = "block";
+            }
         }
-    };
-})();
+    }, 1000);
+}
 
-ArvesAccess.init();
-
+render();
