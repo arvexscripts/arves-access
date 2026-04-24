@@ -1,34 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arves Access - Secure Gateway</title>
+    <title>Acesso Arves</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="lang-selector">
-        <button onclick="ArvesAccess.setLang('en')" data-lang="en">EN</button>
-        <button onclick="ArvesAccess.setLang('es')" data-lang="es">ES</button>
-        <button onclick="ArvesAccess.setLang('pt')" data-lang="pt">PT</button>
+<div id="lang-selector">
+    <button onclick="setLang('pt')" id="btn-pt">PT</button>
+    <button onclick="setLang('en')" id="btn-en">EN</button>
+    <button onclick="setLang('es')" id="btn-es">ES</button>
+</div>
+
+<div class="container">
+
+    <h2 id="title"></h2>
+    <p id="status"></p>
+
+    <div class="card">
+        <span id="step1"></span>
+        <button class="btn" onclick="start(0, 'https://youtube.com')" id="btn0"></button>
     </div>
 
-    <div id="app">
-        <header>
-            <h1 id="txt-title">Arves Access</h1>
-            <p id="txt-subtitle">Complete the checks to proceed</p>
-        </header>
-
-        <div id="steps-container"></div>
-
-        <div class="footer-actions">
-            <button id="finalBtn" class="main-btn" disabled>
-                ACCESS CONTENT
-            </button>
-        </div>
+    <div class="card">
+        <span id="step2"></span>
+        <button class="btn blocked" onclick="start(1, 'https://youtube.com')" id="btn1"></button>
     </div>
 
-    <script src="app.js"></script>
+    <div class="card">
+        <span id="step3"></span>
+        <button class="btn blocked" onclick="start(2, 'https://discord.com')" id="btn2"></button>
+    </div>
+
+    <button class="unlock" id="unlock"></button>
+
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
