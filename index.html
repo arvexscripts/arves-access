@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arves Access - Sistema de Acesso</title>
+    <title>Arves Access - Secure Gateway</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="lang-selector">
+        <button onclick="ArvesAccess.setLang('en')" data-lang="en">EN</button>
+        <button onclick="ArvesAccess.setLang('es')" data-lang="es">ES</button>
+        <button onclick="ArvesAccess.setLang('pt')" data-lang="pt">PT</button>
+    </div>
+
     <div id="app">
         <header>
-            <h1>Arves Access</h1>
-            <p>Conclua as verificações para prosseguir</p>
+            <h1 id="txt-title">Arves Access</h1>
+            <p id="txt-subtitle">Complete the checks to proceed</p>
         </header>
 
         <div id="steps-container"></div>
 
         <div class="footer-actions">
             <button id="finalBtn" class="main-btn" disabled>
-                ACESSAR CONTEÚDO
+                ACCESS CONTENT
             </button>
         </div>
     </div>
@@ -26,4 +32,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
